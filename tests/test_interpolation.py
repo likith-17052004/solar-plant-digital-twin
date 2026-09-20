@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import unittest
 
-from solar_twin.clear_sky import estimate_clear_sky_ghi, synthesize_dni_dhi
+from solar_twin.clear_sky import clear_sky_irradiance
 from solar_twin.interpolation import interpolate_weather, interpolation_warnings
 from solar_twin.plant import load_plant
 from solar_twin.solar_position import solar_position
@@ -88,7 +88,7 @@ class InterpolationTests(unittest.TestCase):
         for n in (0, 1):
             when = MORNING + timedelta(hours=n)
             zenith = solar_position(self.location, when).zenith_deg
-            split = synthesize_dni_dhi(estimate_clear_sky_ghi(zenith), zenith)
+            split = clear_sky_irradiance(self.location, when, zenith)
             ends.append(WeatherObservation(
                 when, transmission * split.dni_w_m2, transmission * split.dhi_w_m2,
                 transmission * split.ghi_w_m2, 27, 2, 20, 0))
@@ -98,7 +98,8 @@ class InterpolationTests(unittest.TestCase):
         self.assertEqual(values, sorted(values))
         for sample in out:
             zenith = solar_position(self.location, sample.timestamp_utc).zenith_deg
-            self.assertAlmostEqual(sample.ghi_w_m2 / estimate_clear_sky_ghi(zenith),
+            self.assertAlmostEqual(sample.ghi_w_m2 / clear_sky_irradiance(
+                self.location, sample.timestamp_utc, zenith).ghi_w_m2,
                                    transmission, places=6)
         # Distinct from the chord a direct interpolation would have drawn.
         chord_midpoint = (values[0] + values[-1]) / 2

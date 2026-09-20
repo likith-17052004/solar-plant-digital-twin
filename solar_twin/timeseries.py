@@ -43,6 +43,7 @@ def simulate_weather_series(
             surface_tilt_deg=plant.layout.tilt_deg,
             surface_azimuth_deg=plant.layout.azimuth_deg,
             ground_albedo=plant.location.ground_albedo,
+            timestamp_utc=obs.timestamp_utc,
         )
         conditions = Conditions(
             poa_irradiance_w_m2=poa.poa_global_w_m2,

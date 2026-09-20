@@ -16,7 +16,8 @@ from solar_twin.solar_position import solar_position
 
 CONFIG = Path(__file__).resolve().parents[1] / "config" / "plant.json"
 NOON = datetime(2025, 3, 15, 6, 30, tzinfo=timezone.utc)      # 12:00 IST
-# 18:05 IST in late January: the sun is 2.3 degrees up and setting WSW, the
+# 18:05 IST in late January: the sun is 2.6 degrees up (apparent, after
+# refraction) and setting WSW, the
 # only time of day this array (GCR 0.35) shades itself at all.
 SUNSET = datetime(2025, 1, 28, 12, 35, tzinfo=timezone.utc)
 BUILT = datetime(2021, 6, 1, tzinfo=timezone.utc)
@@ -107,7 +108,7 @@ class FleetTests(unittest.TestCase):
 
     def test_setting_sun_produces_row_shading(self):
         result = self.run_fleet(when=SUNSET, dni=300, dhi=80, ghi=140)
-        self.assertAlmostEqual(result.array_plane.shaded_row_fraction, 0.347, places=2)
+        self.assertAlmostEqual(result.array_plane.shaded_row_fraction, 0.294, places=2)
         shading = dict(result.loss_waterfall)["row_shading"]
         self.assertLess(shading, 0)
         self.assertIn("beam_partially_blocked_by_row_in_front", result.warnings)
@@ -171,16 +172,20 @@ class ShadingWindowTests(unittest.TestCase):
     def test_row_shading_is_rare_at_this_pitch(self):
         from datetime import timedelta
         from solar_twin.array_geometry import shaded_fraction
+        from solar_twin.solar_position import solar_position_series
         plant = load_plant(CONFIG)
         geometry = plant.row_geometry
         start = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        # Vectorised: a year of half-hourly positions in one pvlib call rather
+        # than 17,520 scalar ones, which is ~150x faster for the same answer.
+        stamps = [start + timedelta(minutes=30 * step) for step in range(365 * 24 * 2)]
+        frame = solar_position_series(plant.location, stamps)
         daylight = shaded = 0
-        for step in range(0, 365 * 24 * 2):
-            position = solar_position(plant.location, start + timedelta(minutes=30 * step))
-            if position.zenith_deg >= 90:
+        for zenith, azimuth in zip(frame["apparent_zenith"], frame["azimuth"]):
+            if zenith >= 90:
                 continue
             daylight += 1
-            if shaded_fraction(position.zenith_deg, position.azimuth_deg, geometry) > 0:
+            if shaded_fraction(float(zenith), float(azimuth), geometry) > 0:
                 shaded += 1
         self.assertGreater(daylight, 8000)
         self.assertLess(shaded / daylight, 0.03)

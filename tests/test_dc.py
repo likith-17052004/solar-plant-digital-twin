@@ -122,3 +122,38 @@ class DCTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PvlibAgreementTests(unittest.TestCase):
+    """Pin the models against pvlib directly.
+
+    These passed before the implementation was swapped to pvlib, which is the
+    interesting part: the hand-written Sandia and PVWatts equations were
+    already correct. Keeping the check means a future pvlib change cannot move
+    the answer without a test noticing.
+    """
+
+    def setUp(self):
+        self.plant = load_plant(ROOT / "config/plant.json")
+
+    def test_cell_temperature_matches_pvlib_sapm(self):
+        import pvlib
+        from solar_twin.dc import ThermalParameters, estimate_cell_temperature
+        p = ThermalParameters()
+        for poa, air, wind in ((1000, 25, 1), (800, 35, 2), (200, 20, 5), (1100, 45, 3)):
+            with self.subTest(poa=poa):
+                ours = estimate_cell_temperature(Conditions(poa, air, wind), p)
+                theirs = float(pvlib.temperature.sapm_cell(
+                    poa, air, wind, p.a, p.b, p.cell_module_delta_at_1000w_c))
+                self.assertAlmostEqual(ours, theirs, places=9)
+
+    def test_module_power_matches_pvlib_pvwatts(self):
+        import pvlib
+        from solar_twin.dc import simulate_dc
+        for poa, air, wind in ((1000, 25, 1), (800, 35, 2), (200, 20, 5), (1100, 45, 3)):
+            with self.subTest(poa=poa):
+                result = simulate_dc(self.plant, Conditions(poa, air, wind))
+                theirs = float(pvlib.pvsystem.pvwatts_dc(
+                    poa, result.cell_temperature_c, self.plant.module.power_w,
+                    self.plant.module.power_temperature_coefficient_per_c))
+                self.assertAlmostEqual(result.module_available_dc_w, theirs, places=9)

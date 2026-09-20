@@ -2,10 +2,21 @@
 
 This is available array power, before inverter voltage/current limits or AC
 conversion. Inputs must already contain irradiance on the tilted panel plane.
+
+Both models now come from pvlib (`temperature.sapm_cell`, `pvsystem.pvwatts_dc`)
+rather than being written out here. Worth recording why, because unlike the
+solar-position and transposition swaps this one changed no numbers at all: the
+hand-written versions agreed with pvlib to exactly 0.000 C on cell temperature
+and 1e-13 W on module power across the whole operating range. They were right.
+What the swap buys is less code to own and a shared implementation, not
+accuracy - `tests/test_dc.py` pins the agreement so a future pvlib change
+cannot quietly move the answer.
 """
 
 from dataclasses import dataclass
 import math
+
+import pvlib
 
 from .plant import Plant
 from .validation import number_in_range as _number_in_range
@@ -73,11 +84,13 @@ def estimate_cell_temperature(
     """
     if conditions.cell_temperature_override_c is not None:
         return conditions.cell_temperature_override_c
-    irradiance = conditions.poa_irradiance_w_m2
-    module_temperature = conditions.air_temperature_c + irradiance * math.exp(
-        parameters.a + parameters.b * conditions.wind_speed_10m_m_s
-    )
-    return module_temperature + irradiance / 1000 * parameters.cell_module_delta_at_1000w_c
+    return float(pvlib.temperature.sapm_cell(
+        poa_global=conditions.poa_irradiance_w_m2,
+        temp_air=conditions.air_temperature_c,
+        wind_speed=conditions.wind_speed_10m_m_s,
+        a=parameters.a, b=parameters.b,
+        deltaT=parameters.cell_module_delta_at_1000w_c,
+    ))
 
 
 def simulate_dc(
@@ -92,7 +105,14 @@ def simulate_dc(
     temperature = estimate_cell_temperature(conditions, parameters)
     effective = conditions.poa_irradiance_w_m2 * (1 - conditions.soiling_loss_fraction)
     factor = max(0.0, 1 + plant.module.power_temperature_coefficient_per_c * (temperature - 25))
-    module_power = plant.module.power_w * effective / 1000 * factor
+    # pvwatts_dc has no floor, so a cell hot enough to drive the temperature
+    # factor negative would return negative power. Clamping at zero keeps the
+    # old behaviour: a module that hot produces nothing, it does not consume.
+    module_power = max(0.0, float(pvlib.pvsystem.pvwatts_dc(
+        effective_irradiance=effective, temp_cell=temperature,
+        pdc0=plant.module.power_w,
+        gamma_pdc=plant.module.power_temperature_coefficient_per_c,
+    )))
     block_power = module_power * plant.layout.modules_per_string * plant.layout.strings_per_block / 1e6
     blocks = tuple(BlockDC(f"BLK-{n:03}", block_power) for n in range(1, plant.layout.blocks + 1))
     warnings = []

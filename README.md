@@ -3,8 +3,9 @@
 **A physics-based digital twin of a 100 MW photovoltaic solar plant — it doesn't
 just predict output, it tells you which block is underperforming and why.**
 
-Built in pure Python standard library. No NumPy, no pandas, no pvlib, no
-dependencies at all.
+Physics from **pvlib**, the reference library for photovoltaic modelling.
+Everything above the physics — per-block asset state, fault detection, the loss
+waterfall, the grid cascade, history, the server — is pure standard library.
 
 ![The plant, 20 inverter blocks and 200,100 modules, rendered in 3D](docs/images/01-aerial.jpg)
 
@@ -109,22 +110,60 @@ flowchart LR
 
 ## Run it
 
-Python 3.10 or newer. Nothing to install.
+Python 3.10 or newer.
 
 ```bash
+pip install -r requirements.txt
 python3 -m solar_twin.server
 ```
 
 Then open <http://127.0.0.1:8000>. Drag to orbit, click any block to inspect
 it, and press **Load weather** for a real day at the real site.
 
-Run the test suite — 236 tests, no test dependencies either:
+Run the test suite — 256 tests:
 
 ```bash
 python3 -m unittest discover -s tests
 ```
 
 ---
+
+## On the physics
+
+Every physics model here comes from pvlib: SPA solar position, Perez
+transposition, Ineichen clear sky, Sandia cell temperature, PVWatts DC,
+Passias row shading, ASHRAE incidence-angle losses, Kimber soiling.
+
+It didn't start that way. The whole project was originally written stdlib-only,
+each model coded from its published paper. Adopting pvlib meant every one of
+those could finally be checked against a reference implementation — and that
+turned out to be the most useful thing it bought:
+
+| Model | Agreement with pvlib |
+| --- | --- |
+| Sandia cell temperature | exact (0.000 °C) |
+| PVWatts DC | 1e-13 W |
+| Passias row shading | exact to 4 dp across a sunset |
+| ASHRAE IAM | exact (0.00e+00) |
+| Kimber soiling | exact over 2160 hourly samples |
+| PVWatts inverter curve | 4e-16 MW |
+
+Every hand-written model was already right. Those checks are now permanent
+tests (`tests/test_pvlib_agreement.py`) so neither side can drift silently.
+
+What genuinely improved: solar position gained atmospheric refraction and about
+two orders of magnitude of accuracy; the clear-sky DNI/DHI split went from a
+made-up fixed 15% diffuse fraction to a model whose diffuse share actually
+varies with sun height (0.19 at noon, 0.57 near sunset); transposition gained
+an anisotropic sky. And one term that had simply been missing got added — the
+sky each row hides from its neighbour. That had been documented as costing "a
+few percent"; measured, it costs **0.22%**, so the note was wrong by an order
+of magnitude and is now corrected.
+
+One model stayed hand-written on purpose. `pvlib.inverter.pvwatts` clips at
+nameplate, but this project needs the *unclipped* curve to solve backwards from
+clipped AC to the DC actually consumed. Swapping it in broke that solve, and
+three tests caught it.
 
 ## What it models — and what it doesn't
 

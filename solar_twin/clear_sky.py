@@ -1,19 +1,35 @@
-"""Synthetic clear-sky irradiance and temperature - demo support, not a Step.
+"""Clear-sky irradiance, via pvlib's Ineichen-Perez model.
 
-This exists so the frontend's time/date slider has something physically
-reasonable to render instantly, without a network round trip to the real
-weather API (weather.py, Step 4) on every drag. It is explicitly illustrative:
-the DNI/DHI split and diurnal temperature are coarse approximations, not a
-validated clear-sky decomposition model. The real weather path remains the
-authoritative one whenever it is used.
+This is the reference the rest of the project measures against: the synthetic
+demo path uses it directly, and `interpolation.py` divides measured irradiance
+by it to get a clear-sky index.
+
+Ineichen & Perez (2002), as implemented by `pvlib.clearsky.ineichen`. It takes
+a Linke turbidity - how hazy the atmosphere is - and returns a physically
+consistent GHI, DNI and DHI *together*.
+
+That last word is the point of this rewrite. The previous version paired
+Haurwitz (1945), which gives GHI only, with a made-up 15% diffuse fraction,
+and its own docstring conceded the split was "explicitly not a validated
+decomposition model". A fixed fraction is wrong in a specific, knowable way:
+the real diffuse share climbs steeply as the sun drops, because the beam
+crosses more atmosphere. Ineichen reproduces that - at Pavagada it runs about
+0.18 with the sun high and 0.40 near the horizon, against the flat 0.15 that
+was there before.
+
+Linke turbidity comes from pvlib's bundled monthly climatology rather than a
+guess. Pavagada reads about 4.7, consistent with a hazy semi-arid site.
 """
 
 from dataclasses import dataclass
-import math
+from datetime import datetime
+from functools import lru_cache
 
+import pandas as pd
+import pvlib
+
+from .location import Location
 from .validation import number_in_range
-
-_DIFFUSE_FRACTION = 0.15
 
 # Clear-sky demo has no cloud cover; weather mode supplies its own value.
 SYNTHETIC_CLOUD_COVER_FRACTION = 0.0
@@ -26,40 +42,49 @@ class ClearSkyIrradiance:
     dhi_w_m2: float
 
 
-def estimate_clear_sky_ghi(zenith_deg: float) -> float:
-    """Haurwitz (1945) clear-sky global horizontal irradiance.
+@lru_cache(maxsize=512)
+def _linke_turbidity(latitude: float, longitude: float, year: int, month: int) -> float:
+    """Monthly Linke turbidity for a site, from pvlib's bundled climatology.
 
-    GHI = 1098 * cos(Z) * exp(-0.059 / cos(Z)) for Z < 90 deg, else 0. A
-    real, simple, citable clear-sky model (the same one pvlib.clearsky.haurwitz
-    implements), not a fitted or invented curve.
+    Cached because the lookup reads a packaged data file, and the value only
+    varies by site and calendar month.
     """
-    number_in_range("zenith_deg", zenith_deg, 0, 180)
-    if zenith_deg >= 90:
-        return 0.0
-    cos_z = math.cos(math.radians(zenith_deg))
-    return 1098.0 * cos_z * math.exp(-0.059 / cos_z)
+    index = pd.DatetimeIndex([f"{year:04d}-{month:02d}-15"], tz="UTC")
+    return float(pvlib.clearsky.lookup_linke_turbidity(index, latitude, longitude).iloc[0])
 
 
-def synthesize_dni_dhi(ghi_w_m2: float, zenith_deg: float) -> ClearSkyIrradiance:
-    """Coarse illustrative DNI/DHI split at a fixed 15% diffuse fraction.
+def clear_sky_irradiance(
+    location: Location, timestamp_utc: datetime, apparent_zenith_deg: float,
+) -> ClearSkyIrradiance:
+    """Clear-sky GHI/DNI/DHI at one instant, as a consistent triple."""
+    number_in_range("apparent_zenith_deg", apparent_zenith_deg, 0, 180)
+    if apparent_zenith_deg >= 90:
+        return ClearSkyIrradiance(0.0, 0.0, 0.0)
 
-    Not a validated decomposition model (contrast the Erbs/Perez-style
-    approaches a rigorous clear-sky application would use) - good enough for
-    a smooth interactive demo, explicitly not for anything else.
-    """
-    number_in_range("ghi_w_m2", ghi_w_m2, 0, 1500)
-    number_in_range("zenith_deg", zenith_deg, 0, 180)
-    if zenith_deg >= 90 or ghi_w_m2 <= 0:
-        return ClearSkyIrradiance(ghi_w_m2=max(0.0, ghi_w_m2), dni_w_m2=0.0, dhi_w_m2=max(0.0, ghi_w_m2))
-    dhi = _DIFFUSE_FRACTION * ghi_w_m2
-    dni = (ghi_w_m2 - dhi) / math.cos(math.radians(zenith_deg))
-    return ClearSkyIrradiance(ghi_w_m2=ghi_w_m2, dni_w_m2=dni, dhi_w_m2=dhi)
+    pressure = pvlib.atmosphere.alt2pres(location.elevation_m)
+    relative = pvlib.atmosphere.get_relative_airmass(apparent_zenith_deg)
+    absolute = pvlib.atmosphere.get_absolute_airmass(relative, pressure)
+    turbidity = _linke_turbidity(location.latitude_deg, location.longitude_deg,
+                                 timestamp_utc.year, timestamp_utc.month)
+    frame = pvlib.clearsky.ineichen(apparent_zenith_deg, absolute, turbidity,
+                                    altitude=location.elevation_m)
+    return ClearSkyIrradiance(
+        ghi_w_m2=float(frame["ghi"]),
+        dni_w_m2=float(frame["dni"]),
+        dhi_w_m2=float(frame["dhi"]),
+    )
 
 
 def synthesize_air_temperature_c(
-    local_hour_decimal: float, mean_c: float = 28.0, amplitude_c: float = 8.0, minimum_local_hour: float = 6.0,
+    local_hour_decimal: float, mean_c: float = 28.0, amplitude_c: float = 8.0,
+    minimum_local_hour: float = 6.0,
 ) -> float:
-    """Simple diurnal sinusoid keyed to local hour - representative of Pavagada, not a forecast."""
+    """Simple diurnal sinusoid keyed to local hour.
+
+    Demo support, not a forecast, and the one thing here pvlib has no opinion
+    about: representative of Pavagada, not measured for any particular day.
+    """
     number_in_range("local_hour_decimal", local_hour_decimal, 0, 24)
+    import math
     phase = 2 * math.pi * (local_hour_decimal - minimum_local_hour) / 24
     return mean_c - amplitude_c * math.cos(phase)

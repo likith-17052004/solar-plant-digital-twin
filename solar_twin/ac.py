@@ -84,6 +84,13 @@ def _unconstrained_ac_mw(dc_mw: float, nominal_ac_mw: float, p: InverterParamete
     Inverter Pdc0 is AC rating / nominal efficiency, NOT the array DC nameplate.
     This helper is evaluated only on the bounded lower branch (zeta <= 10).
     """
+    # Written out rather than calling pvlib.inverter.pvwatts, deliberately.
+    # pvlib's version clips its output at nameplate AC, and this helper is the
+    # *unclipped* branch on purpose: convert_inverter solves backwards from a
+    # clipped AC target to the DC actually consumed, which needs the curve to
+    # keep rising past nameplate. Swapping it in silently broke that solve and
+    # three tests caught it. Below clipping the two agree to 4e-16 MW, which
+    # tests/test_pvlib_agreement.py pins.
     dc_reference = nominal_ac_mw / p.nominal_efficiency
     zeta = dc_mw / dc_reference
     converted = p.nominal_efficiency / 0.9637 * dc_reference * (

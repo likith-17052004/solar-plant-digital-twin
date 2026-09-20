@@ -6,6 +6,23 @@ important — what it does not claim to do.
 
 For the short version, see the [README](../README.md).
 
+> **Note on the physics, added after this document was written.** The models
+> below were originally implemented here by hand, from their published papers,
+> under a stdlib-only constraint. They now come from **pvlib** instead. The
+> derivations, citations and stated limits are all still accurate — what
+> changed is who executes the equation.
+>
+> Three things genuinely improved and are *not* described below: solar position
+> moved from PSA to NREL's SPA and gained atmospheric refraction; the clear-sky
+> model moved from Haurwitz plus a fixed 15% diffuse fraction to Ineichen-Perez,
+> which gives a physically varying diffuse share; and transposition moved from
+> isotropic to Perez. One term that was documented here as omitted — the sky
+> each row masks from its neighbour — now exists, and measures 0.22% rather
+> than the "few percent" guessed at below.
+>
+> Every other model was checked against pvlib and matched exactly. See the
+> README's *On the physics* section and `tests/test_pvlib_agreement.py`.
+
 ---
 
 Personal hobby project: a fictional 100 MW AC solar plant. The backend includes

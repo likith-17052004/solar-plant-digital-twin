@@ -7,7 +7,7 @@ from solar_twin.assets import (
     INVERTER_OFFLINE, LOCALISED_SOILING, STRINGS_DISCONNECTED,
     BlockFault, nominal_state, with_faults,
 )
-from solar_twin.clear_sky import estimate_clear_sky_ghi, synthesize_dni_dhi
+from solar_twin.clear_sky import clear_sky_irradiance
 from solar_twin.dc import Conditions
 from solar_twin.fleet import simulate_fleet
 from solar_twin.irradiance import transpose_to_poa
@@ -38,7 +38,7 @@ class MeasurementTests(unittest.TestCase):
 
     def fleet(self, when, faults=None):
         position = solar_position(self.plant.location, when)
-        split = synthesize_dni_dhi(estimate_clear_sky_ghi(position.zenith_deg), position.zenith_deg)
+        split = clear_sky_irradiance(self.plant.location, when, position.zenith_deg)
         poa = transpose_to_poa(split.dni_w_m2, split.dhi_w_m2, split.ghi_w_m2,
                                position.zenith_deg, position.azimuth_deg,
                                self.plant.layout.tilt_deg, self.plant.layout.azimuth_deg,
@@ -138,7 +138,7 @@ class MeasurementTests(unittest.TestCase):
         # sigma of its neighbours, so peer ratios swing for no physical reason.
         # Flagging there produced six "underperforming" blocks on a clear
         # evening with the plant at 0.1 MW.
-        dusk = DAY + timedelta(hours=12, minutes=44)   # sun 3.3 degrees up, ~48 kW a block
+        dusk = DAY + timedelta(hours=12, minutes=42)   # sun 4.0 degrees up, ~28 kW a block
         model = self.fleet(dusk)
         producing = [b for b in model.blocks if b.inverter_ac_mw > 0]
         self.assertTrue(producing, "fixture must still be producing a little")

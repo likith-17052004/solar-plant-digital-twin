@@ -67,6 +67,7 @@ class BlockOutcome:
     inverter_ac_mw: float
     shading_loss_mw: float
     reflection_loss_mw: float
+    sky_masking_loss_mw: float
     temperature_loss_mw: float
     soiling_loss_mw: float
     degradation_loss_mw: float
@@ -159,6 +160,7 @@ def simulate_fleet(
 
     shading_share = block_capacity_mw * array_plane.shading_loss_w_m2 / 1000
     reflection_share = block_capacity_mw * array_plane.reflection_loss_w_m2 / 1000
+    masking_share = block_capacity_mw * array_plane.sky_masking_loss_w_m2 / 1000
     temperature_share = block_capacity_mw * effective_poa / 1000 * (1 - temperature_factor)
 
     outcomes, block_ac, warnings = [], [], list(clean.warnings)
@@ -205,6 +207,7 @@ def simulate_fleet(
             inverter_ac_mw=inverter.ac_output_mw,
             shading_loss_mw=shading_share,
             reflection_loss_mw=reflection_share,
+            sky_masking_loss_mw=masking_share,
             temperature_loss_mw=temperature_share,
             soiling_loss_mw=clean_dc_per_block - after_soiling,
             degradation_loss_mw=after_soiling - after_degradation,
@@ -230,6 +233,7 @@ def simulate_fleet(
         ("nameplate_dc_at_incident_poa", total("nameplate_dc_mw")),
         ("row_shading", -total("shading_loss_mw")),
         ("glass_reflection", -total("reflection_loss_mw")),
+        ("sky_masked_by_rows", -total("sky_masking_loss_mw")),
         ("cell_temperature", -total("temperature_loss_mw")),
         ("soiling", -total("soiling_loss_mw")),
         ("module_degradation", -total("degradation_loss_mw")),

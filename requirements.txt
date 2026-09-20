@@ -1,0 +1,7 @@
+# The physics models come from pvlib, the reference Python library for
+# photovoltaic modelling. It pulls in numpy, pandas, scipy and h5py.
+#
+# Everything above the physics - per-block asset state, fault detection,
+# the loss waterfall, the grid cascade, history and the web server - is
+# still pure standard library. pvlib stops at inverter AC.
+pvlib>=0.15

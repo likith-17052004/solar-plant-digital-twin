@@ -30,9 +30,8 @@ from .array_geometry import apply_array_losses
 from .assets import FAULT_DESCRIPTIONS, FAULT_KINDS, BlockFault, nominal_state, with_faults
 from .clear_sky import (
     SYNTHETIC_CLOUD_COVER_FRACTION,
-    estimate_clear_sky_ghi,
+    clear_sky_irradiance,
     synthesize_air_temperature_c,
-    synthesize_dni_dhi,
 )
 from .dc import Conditions
 from .dc_electrical import evaluate_dc_electrical
@@ -200,7 +199,7 @@ def build_scene(
     position = solar_position(plant.location, timestamp_utc)
     poa = transpose_to_poa(dni, dhi, ghi, position.zenith_deg, position.azimuth_deg,
                            plant.layout.tilt_deg, plant.layout.azimuth_deg,
-                           plant.location.ground_albedo)
+                           plant.location.ground_albedo, timestamp_utc)
     plane = apply_array_losses(poa, position.zenith_deg, position.azimuth_deg, plant.row_geometry)
     conditions = Conditions(plane.effective_poa_global_w_m2, air_temperature_c, wind_speed_m_s)
 
@@ -308,8 +307,7 @@ def scene_payload(session: Session, scene: Scene) -> dict:
 
 def synthetic_scene(session: Session, timestamp_utc: datetime, local_hour: float) -> Scene:
     position = solar_position(session.plant.location, timestamp_utc)
-    ghi = estimate_clear_sky_ghi(position.zenith_deg)
-    split = synthesize_dni_dhi(ghi, position.zenith_deg)
+    split = clear_sky_irradiance(session.plant.location, timestamp_utc, position.zenith_deg)
     soiling, source, notes = session.soiling_for(timestamp_utc.date().isoformat(), use_weather=False)
     return build_scene(
         session, timestamp_utc, split.dni_w_m2, split.dhi_w_m2, split.ghi_w_m2,

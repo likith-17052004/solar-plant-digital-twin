@@ -27,11 +27,11 @@ Honest limits, carried on the result:
   fluctuates by hundreds of W/m2 within seconds; nothing here can recover
   variability the hourly feed never recorded. Sub-hourly values are smooth by
   construction and will understate real short-term swings.
-* The clear-sky reference is Haurwitz plus this project's coarse fixed-ratio
-  DNI/DHI split (`clear_sky.py`, demo support, explicitly not a validated
-  decomposition), so the index is only as good as that reference. In
-  particular the diffuse reference assumes clear sky, so the diffuse index is
-  routinely well above 1 - that is the model working, not an error.
+* The clear-sky reference is pvlib's Ineichen-Perez model (`clear_sky.py`),
+  so the index is only as good as that reference and its Linke turbidity
+  climatology. The diffuse reference is by definition a *clear-sky* diffuse,
+  so the diffuse index is routinely well above 1 under cloud - that is the
+  model working, not an error.
 * Measured samples pass through untouched. Only the gaps between them are
   filled, so nothing here ever rewrites a real observation.
 * Interpolated samples are marked as such, and never presented as measured.
@@ -40,7 +40,7 @@ Honest limits, carried on the result:
 from dataclasses import replace
 from datetime import timedelta
 
-from .clear_sky import estimate_clear_sky_ghi, synthesize_dni_dhi
+from .clear_sky import clear_sky_irradiance
 from .location import Location
 from .solar_position import solar_position
 from .validation import number_in_range
@@ -68,9 +68,8 @@ _MAXIMUM_CLEARNESS = {"ghi": 3.0, "dni": 1.5, "dhi": 12.0}
 def _clear_sky_reference(location: Location, timestamp) -> tuple[float, float, float]:
     """Clear-sky GHI/DNI/DHI at one instant, as the index's denominator."""
     position = solar_position(location, timestamp)
-    ghi = estimate_clear_sky_ghi(position.zenith_deg)
-    split = synthesize_dni_dhi(ghi, position.zenith_deg)
-    return split.ghi_w_m2, split.dni_w_m2, split.dhi_w_m2
+    reference = clear_sky_irradiance(location, timestamp, position.zenith_deg)
+    return reference.ghi_w_m2, reference.dni_w_m2, reference.dhi_w_m2
 
 
 def _clearness(measured: float, reference: float, component: str) -> float | None:
