@@ -1,0 +1,67 @@
+Copyright (c) 2026 Likith Muninarakala. All rights reserved.
+
+PROPRIETARY SOFTWARE — ALL RIGHTS RESERVED
+
+This repository and its contents (the "Software") are published publicly for
+evaluation, reference, and portfolio purposes only.
+
+NO LICENSE IS GRANTED
+
+No permission is granted to any person to use, copy, modify, merge, publish,
+distribute, sublicense, sell, or create derivative works from the Software,
+in whole or in part, whether for commercial or non-commercial purposes.
+
+Reading the source code and running it locally to evaluate it are permitted.
+Any other use requires a separate written license agreement with the copyright
+holder.
+
+COMMERCIAL AND OTHER LICENSING
+
+Licenses for commercial use, internal business use, redistribution, or
+derivative works are available for purchase. To enquire, contact:
+
+    Likith Muninarakala <likithmuni.2004@gmail.com>
+
+WHAT IS AND IS NOT CLAIMED
+
+The copyright claimed here covers this particular implementation — the source
+code, its structure, and its documentation.
+
+It does NOT claim ownership of the scientific models the Software implements.
+Those are published, publicly available science, and anyone is free to
+implement them independently. They include, among others: the PVWatts v5 DC
+model, the Sandia module temperature model, the PSA solar position algorithm
+(Blanco-Muriel et al. 2001), Liu & Jordan isotropic transposition (1963), the
+Haurwitz clear-sky model (1945), Passias & Kallback row shading (1984), the
+ASHRAE incidence angle modifier, the Kimber soiling model (2014), Kasten &
+Young air mass (1989), IEC 61724-1 performance ratio, the Henyey-Greenstein
+phase function (1941), and the real-time volumetric rendering techniques
+described by Schneider & Vos (SIGGRAPH 2015), Jimenez (2014) and Mitchell
+(GPU Gems 3).
+
+THIRD-PARTY COMPONENTS
+
+The browser frontend loads three.js (MIT License, https://threejs.org) and
+Google Fonts from third-party CDNs at runtime. Those components are governed
+by their own licenses and are not covered by this license. They are not
+redistributed as part of this repository.
+
+GITHUB TERMS OF SERVICE
+
+This repository is hosted publicly on GitHub. Under GitHub's Terms of Service,
+publishing a public repository grants other GitHub users the right to view and
+fork it within GitHub. That right comes from those Terms and is not granted,
+extended, or restricted by this license. All other rights remain reserved.
+
+NO WARRANTY
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+The Software models a fictional solar plant and is not a certified engineering
+tool. It must not be used as the basis for any real design, financial, safety
+or operational decision.

@@ -1049,3 +1049,19 @@ once under the healthy nominal state, once under the declared state. Model
 warnings and assumptions from every layer, including where the soiling figure
 came from, surface in the data drawer rather than being dropped at the API
 boundary.
+
+## Licence
+
+Copyright © 2026 Likith Muninarakala. **All rights reserved.** See
+[LICENSE](LICENSE).
+
+This code is published for evaluation and reference. It is *not* open source:
+no permission is granted to use, copy, modify or redistribute it. Reading it
+and running it locally to evaluate it are fine; anything else needs a written
+licence. Commercial licences are available — contact
+<likithmuni.2004@gmail.com>.
+
+The scientific models implemented here are published, public science and are
+not claimed by that copyright; only this implementation of them is. three.js
+and Google Fonts load from third-party CDNs at runtime under their own
+licences.
