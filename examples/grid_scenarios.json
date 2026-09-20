@@ -1,0 +1,11 @@
+[
+  {"name": "Synthetic night (no standby grid draw modeled)", "conditions": {
+    "poa_irradiance_w_m2": 0, "air_temperature_c": 25, "wind_speed_10m_m_s": 2
+  }},
+  {"name": "Synthetic cloudy conditions (partial load: relatively higher loss share)", "conditions": {
+    "poa_irradiance_w_m2": 250, "air_temperature_c": 30, "wind_speed_10m_m_s": 2
+  }},
+  {"name": "Synthetic sunny conditions (near-nameplate: relatively lower loss share)", "conditions": {
+    "poa_irradiance_w_m2": 1000, "air_temperature_c": 35, "wind_speed_10m_m_s": 2
+  }}
+]

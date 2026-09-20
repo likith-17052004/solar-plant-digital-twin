@@ -1,0 +1,8 @@
+{
+  "nominal_efficiency": 0.987,
+  "maximum_efficiency": 0.99,
+  "derating_start_air_temperature_c": 50,
+  "derating_fraction_per_c": 0.02,
+  "minimum_operating_air_temperature_c": -35,
+  "maximum_operating_air_temperature_c": 60
+}

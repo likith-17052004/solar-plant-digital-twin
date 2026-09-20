@@ -1,0 +1,21 @@
+[
+  {"name": "STC reference (no feasibility issues)", "conditions": {
+    "poa_irradiance_w_m2": 1000, "air_temperature_c": 25, "wind_speed_10m_m_s": 1,
+    "cell_temperature_override_c": 25
+  }},
+  {"name": "Extreme heat pushes Vmp below MPPT range", "conditions": {
+    "poa_irradiance_w_m2": 1000, "air_temperature_c": 35, "wind_speed_10m_m_s": 2,
+    "cell_temperature_override_c": 85
+  }},
+  {"name": "Extreme cold pushes Voc above the system voltage limit", "conditions": {
+    "poa_irradiance_w_m2": 1000, "air_temperature_c": -35, "wind_speed_10m_m_s": 2,
+    "cell_temperature_override_c": -35
+  }},
+  {"name": "High irradiance pushes operating current above the inverter limit", "conditions": {
+    "poa_irradiance_w_m2": 1100, "air_temperature_c": 25, "wind_speed_10m_m_s": 2,
+    "cell_temperature_override_c": 25
+  }},
+  {"name": "Night: no photovoltaic voltage or current", "conditions": {
+    "poa_irradiance_w_m2": 0, "air_temperature_c": 20, "wind_speed_10m_m_s": 2
+  }}
+]

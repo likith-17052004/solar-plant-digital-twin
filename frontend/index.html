@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><meta name="theme-color" content="#18221f" />
+<title>Solar plant digital twin</title>
+<link rel="stylesheet" href="style.css?v=5" />
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+<canvas id="scene" aria-label="Interactive three dimensional solar plant. Use the camera view buttons to explore, and the plant map to select an inverter block."></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div id="loading"><span class="loader-mark">◈</span><h1>Entering the solar field</h1><p id="loading-message">Building the site, one row at a time.</p></div>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-symbol" aria-hidden="true">◈</span><div><strong>PAVAGADA<span class="brand-separator"> / </span><span class="brand-sub">SOLAR TWIN</span></strong><small id="plant-meta">KARNATAKA, INDIA · 100 MW AC</small></div></div>
+  <div class="top-actions">
+    <span class="source-pill"><i></i><span id="source-label">CLEAR-SKY DEMO</span></span>
+    <button id="details-button" aria-expanded="false" aria-controls="telemetry">Plant data <span>↗</span></button>
+  </div>
+</header>
+
+<section class="headline-metrics" aria-label="Current plant readings">
+  <div><span>NET EXPORT</span><strong id="net-value">—<small> MW</small></strong><em id="net-delta"></em></div>
+  <div><span>IRRADIANCE</span><strong id="poa-value">—<small> W/m²</small></strong></div>
+  <div><span>CELL TEMPERATURE</span><strong id="temperature-value">—<small> °C</small></strong></div>
+  <div><span>DAY PR</span><strong id="pr-value">—</strong><em id="pr-note"></em></div>
+</section>
+
+<nav class="views" aria-label="Camera views">
+  <button data-view="aerial" class="active" aria-pressed="true"><span>▦</span> Aerial</button>
+  <button data-view="rows" aria-pressed="false"><span>▱</span> Panel rows</button>
+  <button data-view="station" aria-pressed="false"><span>⌁</span> Substation</button>
+  <button data-view="sky" aria-pressed="false"><span>☀</span> Sky</button>
+</nav>
+
+<div class="view-caption"><span class="eyebrow" id="view-kicker">01 / SITE OVERVIEW</span><h2 id="view-title">A field of possibilities.</h2></div>
+
+<!-- The plant map mirrors the 3D site layout exactly: five blocks across,
+     four down, in the same order they are built in the scene. The block detail
+     stacks under it so selecting a block never hides the map. -->
+<div class="right-rail">
+<aside class="fleet-map glass" aria-label="Inverter blocks">
+  <div class="fleet-head">
+    <span class="eyebrow">PLANT MAP · 20 BLOCKS</span>
+    <button id="overlay-button" aria-pressed="true" title="Show or hide the status overlay in the 3D scene">◉</button>
+  </div>
+  <div id="fleet-grid" class="fleet-grid" role="group" aria-label="Select an inverter block"></div>
+  <div class="fleet-legend" aria-hidden="true">
+    <span><i class="ok"></i>matches peers</span><span><i class="low"></i>behind</span><span><i class="off"></i>dark</span>
+  </div>
+  <p id="fleet-summary" class="fleet-summary">All blocks matching their peers.</p>
+</aside>
+
+<aside id="block-panel" class="glass" hidden aria-label="Block detail">
+  <div class="drawer-heading">
+    <div><span class="eyebrow" id="block-eyebrow">BLOCK</span><h2 id="block-title">BLK-001</h2></div>
+    <button id="close-block" aria-label="Close block detail">×</button>
+  </div>
+  <div id="block-flag" class="block-flag"></div>
+  <dl id="block-metrics"></dl>
+  <div class="fault-tools">
+    <span class="eyebrow">INJECT A FAULT</span>
+    <p class="muted">The twin keeps modelling the healthy plant. The gap is what you see.</p>
+    <select id="fault-kind" aria-label="Fault kind"></select>
+    <label id="severity-wrap">Severity <output id="severity-out">50%</output>
+      <input id="fault-severity" type="range" min="5" max="95" step="5" value="50" />
+    </label>
+    <div class="fault-actions">
+      <button id="apply-fault">Apply</button>
+      <button id="clear-fault">Clear</button>
+    </div>
+  </div>
+  <div class="fault-actions"><button id="focus-block">Fly to this block</button></div>
+</aside>
+</div>
+
+<aside id="telemetry" class="glass" hidden>
+  <div class="drawer-heading"><div><span class="eyebrow">PLANT TELEMETRY</span><h2>Inside the numbers</h2></div><button id="close-details" aria-label="Close plant data">×</button></div>
+  <div class="tabs" role="tablist">
+    <button data-tab="readings" class="active" role="tab" aria-selected="true">Readings</button>
+    <button data-tab="losses" role="tab" aria-selected="false">Losses</button>
+    <button data-tab="day" role="tab" aria-selected="false">Day</button>
+  </div>
+  <section data-panel="readings">
+    <div class="capacity-track"><span id="capacity-fill"></span></div><p class="muted">Net export / 100 MW capacity</p>
+    <dl id="metrics-list"></dl><div id="warnings"></div>
+    <p class="model-note">Simulated readings. Measurement is synthesised from a declared fault state, not real telemetry.</p>
+  </section>
+  <section data-panel="losses" hidden>
+    <p class="muted">Every megawatt between nameplate irradiance and the grid, attributed to a named cause. The bars close exactly.</p>
+    <div id="waterfall"></div>
+  </section>
+  <section data-panel="day" hidden>
+    <div id="day-chart"></div>
+    <dl id="day-metrics"></dl>
+    <p class="model-note">Energy integrated by trapezoid from simulated power. PR follows IEC 61724-1 and is not temperature corrected.</p>
+  </section>
+</aside>
+
+<div class="scene-tools"><button id="tour-button" aria-pressed="false">↻ <span>Orbit tour</span></button><button id="reset-button" aria-label="Reset camera">⌖</button><button id="quality-button" aria-pressed="true">High detail</button></div>
+<div class="compass" aria-label="Compass"><span>N</span><i id="compass-needle"></i><small>W&nbsp; · &nbsp;E</small></div>
+
+<section class="timeline glass" aria-label="Simulation controls">
+  <div class="time-header"><div class="time-readout"><strong id="hour-label">16:30</strong><span id="timezone-label">IST</span></div><div class="date-wrap"><label for="date-input">SIMULATION DATE</label><input id="date-input" type="date" value="2025-06-01" /></div><div class="weather-controls"><button id="weather-button">Load weather</button><button id="synthetic-button" hidden>Clear-sky demo</button></div></div>
+  <div class="scrubber"><button id="play-button" aria-label="Play day" aria-pressed="false">▶</button><div class="range-wrap"><label class="sr-only" for="hour-input">Local time</label><input id="hour-input" type="range" min="0" max="23.75" step="0.25" value="16.5" /><div class="time-ticks"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div></div>
+  <div class="timeline-footer"><span id="status" role="status">Drag to orbit · click a block to inspect it</span><span>ILLUSTRATIVE SITE · SIMULATED CONDITIONS</span></div>
+</section>
+
+<script type="module" src="app.js?v=37"></script>
+</body>
+</html>

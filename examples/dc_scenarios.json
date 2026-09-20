@@ -1,0 +1,25 @@
+[
+  {"name": "STC reference (controlled cell temperature)", "conditions": {
+    "poa_irradiance_w_m2": 1000, "air_temperature_c": 25, "wind_speed_10m_m_s": 1,
+    "cell_temperature_override_c": 25
+  }},
+  {"name": "Synthetic night", "conditions": {
+    "poa_irradiance_w_m2": 0, "air_temperature_c": 25, "wind_speed_10m_m_s": 2
+  }},
+  {"name": "Synthetic cloudy conditions", "conditions": {
+    "poa_irradiance_w_m2": 250, "air_temperature_c": 30, "wind_speed_10m_m_s": 2
+  }},
+  {"name": "Synthetic sunny conditions", "conditions": {
+    "poa_irradiance_w_m2": 1000, "air_temperature_c": 35, "wind_speed_10m_m_s": 2
+  }},
+  {"name": "Synthetic hot conditions", "conditions": {
+    "poa_irradiance_w_m2": 1000, "air_temperature_c": 45, "wind_speed_10m_m_s": 2
+  }},
+  {"name": "Synthetic windy conditions", "conditions": {
+    "poa_irradiance_w_m2": 1000, "air_temperature_c": 35, "wind_speed_10m_m_s": 6
+  }},
+  {"name": "Synthetic sunny conditions with 5% soiling", "conditions": {
+    "poa_irradiance_w_m2": 1000, "air_temperature_c": 35, "wind_speed_10m_m_s": 2,
+    "soiling_loss_fraction": 0.05
+  }}
+]

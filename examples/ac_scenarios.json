@@ -1,0 +1,25 @@
+[
+  {"name": "Synthetic night", "conditions": {
+    "poa_irradiance_w_m2": 0, "air_temperature_c": 25, "wind_speed_10m_m_s": 2
+  }},
+  {"name": "Synthetic low light", "conditions": {
+    "poa_irradiance_w_m2": 1, "air_temperature_c": 25, "wind_speed_10m_m_s": 2
+  }},
+  {"name": "Synthetic cloudy conditions", "conditions": {
+    "poa_irradiance_w_m2": 250, "air_temperature_c": 30, "wind_speed_10m_m_s": 2
+  }},
+  {"name": "Synthetic sunny conditions with AC clipping", "conditions": {
+    "poa_irradiance_w_m2": 1000, "air_temperature_c": 35, "wind_speed_10m_m_s": 2
+  }},
+  {"name": "Synthetic heatwave with assumed derating", "conditions": {
+    "poa_irradiance_w_m2": 1000, "air_temperature_c": 55, "wind_speed_10m_m_s": 2
+  }},
+  {"name": "Isolated inverter inlet heating at unchanged panel conditions",
+   "inverter_air_temperature_c": 55, "conditions": {
+    "poa_irradiance_w_m2": 1000, "air_temperature_c": 35, "wind_speed_10m_m_s": 2
+  }},
+  {"name": "Assumed shutdown outside inverter operating temperature",
+   "inverter_air_temperature_c": 61, "conditions": {
+    "poa_irradiance_w_m2": 1000, "air_temperature_c": 35, "wind_speed_10m_m_s": 2
+  }}
+]

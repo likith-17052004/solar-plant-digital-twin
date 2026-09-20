@@ -1,0 +1,58 @@
+{
+  "name": "Virtual Solar Plant 100 MW",
+  "module": {
+    "reference": "Trina TSM-650DEG21C.20, TSM_EN_2024_A",
+    "power_w": 650,
+    "vmp_v": 37.7,
+    "voc_v": 45.5,
+    "imp_a": 17.27,
+    "isc_a": 18.35,
+    "voc_temperature_coefficient_per_c": -0.0025,
+    "power_temperature_coefficient_per_c": -0.0034,
+    "isc_temperature_coefficient_per_c": 0.0004,
+    "max_system_voltage_v": 1500,
+    "length_m": 2.384,
+    "width_m": 1.303,
+    "first_year_degradation_fraction": 0.01,
+    "annual_degradation_fraction": 0.004
+  },
+  "inverter": {
+    "reference": "Sungrow SG5000UD-20, datasheet V1.2.2",
+    "active_power_limit_mw": 5,
+    "apparent_power_at_50c_mva": 5,
+    "max_dc_voltage_v": 1500,
+    "nominal_mppt_min_v": 960,
+    "nominal_mppt_max_v": 1300,
+    "max_dc_current_a": 6112,
+    "max_short_circuit_current_a": 10000,
+    "ac_voltage_kv": 0.66
+  },
+  "layout": {
+    "blocks": 20,
+    "strings_per_block": 345,
+    "modules_per_string": 29,
+    "block_transformer_mva": 6.3,
+    "collector_voltage_kv": 33,
+    "grid_voltage_kv": 220,
+    "grid_transformer_mva": 125,
+    "export_limit_mw": 100,
+    "tilt_deg": 25,
+    "azimuth_deg": 180,
+    "modules_along_slope": 1,
+    "row_pitch_m": 6.8
+  },
+  "design_envelope": {
+    "minimum_cell_temperature_c": -10,
+    "voltage_margin_fraction": 0.03,
+    "operating_current_multiplier": 1.02,
+    "short_circuit_current_multiplier": 1.25
+  },
+  "location": {
+    "name": "Pavagada, Karnataka, India (approximate; town-center coordinates)",
+    "latitude_deg": 14.1,
+    "longitude_deg": 77.28,
+    "elevation_m": 700,
+    "timezone": "Asia/Kolkata",
+    "ground_albedo": 0.2
+  }
+}

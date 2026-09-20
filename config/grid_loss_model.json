@@ -1,0 +1,10 @@
+{
+  "block_transformer_no_load_loss_fraction": 0.002,
+  "block_transformer_load_loss_fraction": 0.006,
+  "collector_cable_loss_fraction": 0.01,
+  "grid_transformer_no_load_loss_fraction": 0.001,
+  "grid_transformer_load_loss_fraction": 0.003,
+  "hv_cable_loss_fraction": 0.002,
+  "auxiliary_load_per_block_kw": 5.0,
+  "plant_auxiliary_load_kw": 50.0
+}
