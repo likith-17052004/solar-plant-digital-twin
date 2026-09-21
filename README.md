@@ -21,12 +21,13 @@ wrong with it. The model runs **twice** on every timestep: once assuming a
 perfectly healthy plant, once under the plant's real declared state. The
 difference between them, block by block, is the product.
 
-![A tripped inverter found and quantified](docs/images/02-fault-detection.jpg)
+![Flown in close to BLK-007, dark under a red beacon, with the twin's verdict beside it](docs/images/02-fault-detection.jpg)
 
-Here BLK-007's inverter has tripped. The twin didn't need telling: it compared
-each block's measured output against the **fleet median** and found one reading
-100% below its peers, worth 3.99 MW. BLK-013 and BLK-019 are flagged amber for
-a string outage and a patch of soiling.
+BLK-007's inverter has tripped — the dark block under the red beacon. The twin
+didn't need telling: it compared each block's measured output against the
+**fleet median** and found one reading 100% below its peers, worth 3.86 MW.
+BLK-013 and BLK-019 are flagged amber on the plant map for a string outage and
+a patch of soiling.
 
 Comparing against the *median* rather than a fixed threshold is the whole
 trick. If the irradiance input is 12% low, every block reads 12% low — a fixed
@@ -35,11 +36,12 @@ to the plant and leaves only what's specific to one block.
 
 ## Every megawatt is accounted for
 
-![The loss waterfall](docs/images/03-loss-waterfall.jpg)
+![The loss waterfall, over the collector substation where the losses end up](docs/images/03-loss-waterfall.jpg)
 
 From nameplate irradiance down to the grid, each loss attributed to a named
-cause — glass reflection, cell temperature, soiling, degradation, string
-outages, inverter clipping, transformers, cables, auxiliaries. Nothing
+cause — glass reflection, sky masked by neighbouring rows, cell temperature,
+soiling, degradation, string outages, inverter clipping, transformers, cables,
+auxiliaries. Nothing
 disappears into an unexplained "derate factor". **The bars close exactly**, to
 within 1e-9 MW, and there's a test that proves it.
 

@@ -1,4 +1,4 @@
-import { SolarScene } from './scene.js?v=51';
+import { SolarScene } from './scene.js?v=53';
 
 const $ = id => document.getElementById(id);
 const hourInput = $('hour-input'), dateInput = $('date-input');
